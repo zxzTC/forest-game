@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html>
+
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JSFiddle vagu3y5x</title>
+
+  <style>
+    
+  </style>
+
+  
+</head>
+<body>
+  <!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>森防侦探：症状大分类</title>
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --danger-color: #F44336;
+            --bg-color: #f0f9f0;
+            --card-bg: #ffffff;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            touch-action: none; /* 防止手机端下拉刷新 */
+        }
+
+        /* 顶部区域：两个箱子 */
+        .bins-container {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px 10px;
+            height: 25%;
+            box-sizing: border-box;
+        }
+        .bin {
+            width: 45%;
+            height: 100%;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            transition: transform 0.2s;
+            position: relative;
+        }
+        .bin-symptom {
+            background: linear-gradient(135deg, #8BC34A, #4CAF50);
+            border: 3px solid #388E3C;
+        }
+        .bin-sign {
+            background: linear-gradient(135deg, #29B6F6, #03A9F4);
+            border: 3px solid #0288D1;
+        }
+        .bin-icon { font-size: 3rem; margin-bottom: 10px; }
+        .bin-label { font-size: 1.2rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
+
+        /* 中间区域：计分板 */
+        .score-board {
+            text-align: center;
+            font-size: 1.5rem;
+            color: #333;
+            font-weight: bold;
+            padding: 5px;
+        }
+
+        /* 底部区域：卡牌 */
+        .game-area {
+            flex: 1;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .card {
+            width: 80%;
+            max-width: 300px;
+            height: 120px;
+            background: var(--card-bg);
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-size: 1.3rem;
+            padding: 10px;
+            cursor: pointer;
+            user-select: none;
+            position: absolute;
+            transition: transform 0.3s, opacity 0.3s;
+            border: 2px solid #ddd;
+            z-index: 10;
+        }
+        .card:active { transform: scale(0.95); }
+
+        /* 操作按钮区 */
+        .controls {
+            height: 20%;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding-bottom: 20px;
+        }
+        .btn {
+            width: 40%;
+            height: 60px;
+            border-radius: 30px;
+            border: none;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+        .btn-symptom { background-color: #4CAF50; }
+        .btn-sign { background-color: #03A9F4; }
+        .btn:active { transform: translateY(2px); box-shadow: none; }
+
+        /* 弹窗样式 */
+        .modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            width: 80%;
+            max-width: 350px;
+            animation: popIn 0.3s ease;
+        }
+        @keyframes popIn { from {transform: scale(0.8); opacity: 0;} to {transform: scale(1); opacity: 1;} }
+        .modal h2 { margin-top: 0; color: #333; }
+        .modal p { color: #666; font-size: 1rem; line-height: 1.5; }
+        .modal-btn {
+            background: #4CAF50; color: white; border: none;
+            padding: 10px 25px; border-radius: 20px; font-size: 1rem;
+            margin-top: 15px; cursor: pointer;
+        }
+
+        /* 动画类 */
+        .fly-left { transform: translate(-150%, -50%) rotate(-30deg) !important; opacity: 0; }
+        .fly-right { transform: translate(150%, -50%) rotate(30deg) !important; opacity: 0; }
+        .shake { animation: shake 0.5s; background-color: #ffebee; border-color: #F44336; }
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+            100% { transform: translateX(0); }
+        }
+        
+        /* 开始界面 */
+        #start-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color);
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        #start-screen h1 { color: #2E7D32; margin-bottom: 10px; }
+        #start-screen p { color: #555; padding: 0 20px; margin-bottom: 30px; }
+        .start-btn {
+            background: #2E7D32; color: white; border: none;
+            padding: 15px 40px; font-size: 1.2rem; border-radius: 30px;
+            cursor: pointer; box-shadow: 0 5px 15px rgba(46, 125, 50, 0.4);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 开始界面 -->
+    <div id="start-screen">
+        <h1>🌲 森防侦探 🕵️‍♂️</h1>
+        <p>任务：将出现的描述归类为<br><b>「病状」</b>(植物表现) 或 <b>「病征」</b>(病原表现)</p>
+        <p style="font-size: 0.9rem; color: #888;">共15题，看你能得多少分！</p>
+        <button class="start-btn" onclick="startGame()">开始挑战</button>
+    </div>
+
+    <!-- 游戏主界面 -->
+    <div class="bins-container">
+        <div class="bin bin-symptom" id="bin-symptom">
+            <div class="bin-icon">🌿</div>
+            <div class="bin-label">病状<br><small>(植物本身)</small></div>
+        </div>
+        <div class="bin bin-sign" id="bin-sign">
+            <div class="bin-icon">🦠</div>
+            <div class="bin-label">病征<br><small>(病原物)</small></div>
+        </div>
+    </div>
+
+    <div class="score-board">
+        得分：<span id="score">0</span> | 剩余：<span id="remaining">15</span>
+    </div>
+
+    <div class="game-area" id="game-area">
+        <!-- 卡牌将在这里生成 -->
+    </div>
+
+    <div class="controls">
+        <button class="btn btn-symptom" onclick="checkAnswer('symptom')">🌿 病状</button>
+        <button class="btn btn-sign" onclick="checkAnswer('sign')">🦠 病征</button>
+    </div>
+
+    <!-- 结算弹窗 -->
+    <div class="modal" id="result-modal">
+        <div class="modal-content">
+            <h2 id="result-title">挑战完成!</h2>
+            <p>你的最终得分是：</p>
+            <h1 style="color: #4CAF50; font-size: 3rem;" id="final-score">0</h1>
+            <p id="result-comment">太棒了！你是真正的森防专家！</p>
+            <p style="font-size: 0.8rem; color: #999; margin-top: 20px;">请截图发送给老师</p>
+            <button class="modal-btn" onclick="location.reload()">再玩一次</button>
+        </div>
+    </div>
+
+    <!-- 错误提示弹窗 (临时) -->
+    <div class="modal" id="error-modal">
+        <div class="modal-content">
+            <h2 style="color: #F44336">哎呀，分类错了!</h2>
+            <p id="error-explanation"></p>
+            <button class="modal-btn" onclick="closeErrorModal()">继续挑战</button>
+        </div>
+    </div>
+
+<script>
+    // 题库数据
+    const questions = [
+        { text: "叶片黄化", type: "symptom", explain: "这是植物叶绿素减少的表现，属于病状。" },
+        { text: "白色粉状物", type: "sign", explain: "这是白粉病菌的菌丝和孢子，属于病征。" },
+        { text: "树干流胶", type: "symptom", explain: "这是树体分泌树脂的反应，属于病状。" },
+        { text: "黑色小点", type: "sign", explain: "这通常是真菌的分生孢子器，属于病征。" },
+        { text: "枝条枯死", type: "symptom", explain: "这是植物组织坏死的表现，属于病状。" },
+        { text: "黄色脓胶", type: "sign", explain: "这是细菌性病害溢出的菌脓，属于病征。" },
+        { text: "叶片畸形卷曲", type: "symptom", explain: "这是植物生长异常，属于病状。" },
+        { text: "马蹄状子实体", type: "sign", explain: "这是大型真菌（如担子菌）的子实体，属于病征。" },
+        { text: "根部腐烂", type: "symptom", explain: "这是植物组织崩解，属于病状。" },
+        { text: "锈色粉末", type: "sign", explain: "这是锈病菌的夏孢子，属于病征。" },
+        { text: "病斑轮纹", type: "symptom", explain: "这是坏死组织的形态特征，属于病状。" },
+        { text: "菌核", type: "sign", explain: "这是真菌形成的休眠体，属于病征。" },
+        { text: "丛枝 (扫帚状)", type: "symptom", explain: "这是植物芽的异常萌发，属于病状。" },
+        { text: "霜霉状物", type: "sign", explain: "这是霜霉菌的孢子梗，属于病征。" },
+        { text: "树皮溃疡凹陷", type: "symptom", explain: "这是皮层坏死凹陷，属于病状。" }
+    ];
+
+    let currentQueue = [];
+    let currentCard = null;
+    let score = 0;
+    let isProcessing = false;
+
+    // 洗牌算法
+    function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function startGame() {
+        document.getElementById('start-screen').style.display = 'none';
+        currentQueue = shuffle([...questions]); // 复制并打乱
+        score = 0;
+        updateScore();
+        nextCard();
+    }
+
+    function updateScore() {
+        document.getElementById('score').innerText = score;
+        document.getElementById('remaining').innerText = currentQueue.length;
+    }
+
+    function nextCard() {
+        if (currentQueue.length === 0) {
+            endGame();
+            return;
+        }
+        isProcessing = false;
+        const data = currentQueue.pop();
+        currentCard = data;
+        
+        const gameArea = document.getElementById('game-area');
+        gameArea.innerHTML = ''; // 清空
+        
+        const cardEl = document.createElement('div');
+        cardEl.className = 'card';
+        cardEl.innerText = data.text;
+        gameArea.appendChild(cardEl);
+    }
+
+    function checkAnswer(userChoice) {
+        if (isProcessing || !currentCard) return;
+        isProcessing = true;
+
+        const cardEl = document.querySelector('.card');
+        const isCorrect = userChoice === currentCard.type;
+
+        if (isCorrect) {
+            score += 10;
+            // 动画效果
+            if (userChoice === 'symptom') {
+                cardEl.classList.add('fly-left');
+            } else {
+                cardEl.classList.add('fly-right');
+            }
+            updateScore();
+            setTimeout(nextCard, 600);
+        } else {
+            // 错误处理
+            cardEl.classList.add('shake');
+            document.getElementById('error-explanation').innerText = currentCard.explain;
+            document.getElementById('error-modal').style.display = 'flex';
+            // 不扣分，但需要重试或跳过？这里设计为展示解析后继续下一题，或者你可以设计为必须答对才能过
+            // 当前逻辑：展示解析后，进入下一题
+        }
+    }
+
+    function closeErrorModal() {
+        document.getElementById('error-modal').style.display = 'none';
+        nextCard(); // 直接跳过，或者你可以改为 nextCard 前不弹出，而是直接显示解析在卡片上
+    }
+
+    function endGame() {
+        const modal = document.getElementById('result-modal');
+        document.getElementById('final-score').innerText = score;
+        
+        let comment = "";
+        if (score === 150) comment = "完美！你是传说中的森防大神！🏆";
+        else if (score >= 120) comment = "非常优秀！基础知识很扎实！🌟";
+        else if (score >= 80) comment = "不错哦！再复习一下病征的区别就更好了。📚";
+        else comment = "加油！建议重新回顾课件中病状与病征的定义。💪";
+        
+        document.getElementById('result-comment').innerText = comment;
+        modal.style.display = 'flex';
+    }
+</script>
+
+</body>
+</html>
+
+  <script>
+    
+  </script>
+</body>
+</html>
